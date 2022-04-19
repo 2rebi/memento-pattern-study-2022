@@ -7,6 +7,7 @@
 #pragma comment(lib, "d3dx9.lib" )
 
 #include "MainWindow.h"
+#include "Timer.h"
 
 class DxMainWindow : public MainWindow {
 public:

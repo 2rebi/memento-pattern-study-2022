@@ -144,10 +144,12 @@
     <ClCompile Include="DxMainWindow.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MainWindow.cpp" />
+    <ClCompile Include="Timer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DxMainWindow.h" />
     <ClInclude Include="MainWindow.h" />
+    <ClInclude Include="Timer.h" />
     <ClInclude Include="util.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
