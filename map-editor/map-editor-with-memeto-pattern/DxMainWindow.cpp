@@ -56,6 +56,7 @@ INT DxMainWindow::start() {
 		}
 
 		auto dt = Timer::dt();
+		// GetAsyncKeyState
 		// 1. input manager update
 		// 2. input detect update
 		// 3. object update
