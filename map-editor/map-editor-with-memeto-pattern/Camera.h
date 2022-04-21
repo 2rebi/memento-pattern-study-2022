@@ -15,7 +15,7 @@ protected:
 	void updateProjection();
 	void invalidate();
 
-	D3DXVECTOR3 up = D3DXVECTOR3(0, 0, 1); // fixed
+	D3DXVECTOR3 up = D3DXVECTOR3(0, 1, 0); // fixed
 
 	D3DXVECTOR3 eye;
 	D3DXVECTOR3 lookAt;

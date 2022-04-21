@@ -5,8 +5,8 @@ void Mesh::onCreate() {
 
 	// TODO: 임시, 상태 변경 코드로 빼기 
 	{
-		int width = 300;
-		int height = 300;
+		int width = 100;
+		int height = 100;
 		double cx = -width / 2.0;
 		double cy = height / 2.0;
 

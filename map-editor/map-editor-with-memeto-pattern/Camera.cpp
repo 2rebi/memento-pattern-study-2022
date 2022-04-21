@@ -3,7 +3,7 @@
 void Camera::onCreate() {
 
 	// view
-	eye = D3DXVECTOR3(0, 10, 0);
+	eye = D3DXVECTOR3(0, 50, 25);
 	lookAt = D3DXVECTOR3(0, 0, 0);
 
 	// projection
