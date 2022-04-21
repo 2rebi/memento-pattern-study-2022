@@ -1,20 +1,113 @@
 <html>
-    <body>
-        <canvas id="draw" width="500" height="500" />
-        <script>
-            let y = -1;
-            let x = -1;
+    <style>
+        body {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
 
-            const canvas = document.getElementById("draw");
-            const ctx = canvas.getContext('2d');
-            canvas.onmousemove = (e) => {
-                if (x !== -1 && y !== -1) {
-                    drawLine(ctx, x, y, e.offsetX, e.offsetY);
+        canvas {
+            margin: auto;
+            border: 2px solid #888888;
+        }
+    </style>
+    <body>
+        <canvas id="draw" width="500" height="500" ></canvas>
+    </body>
+    <script>
+        function hash(arr){
+            let hash = 0;
+            for (let i = 0; i < arr.length; i++) {
+                hash = ((hash<<5)-hash)+arr[i];
+                hash = hash & hash; // Convert to 32bit integer
+            }
+            return hash;
+        }
+
+        class PaintMemento {
+            $state;
+            $date;
+
+            constructor($state) {
+                this.$state = $state;
+                this.$date = new Date();
+            } 
+
+            getName() {
+                const state = this.$state;
+                return `${hash(state.data).toString(16)} / ` + this.$date;
+            }
+
+        }
+
+        class Caretaker {
+            $mementos;
+            $originator;
+
+            constructor($originator) {
+                this.$mementos = [];
+                this.$originator = $originator;
+            }
+
+            backup() {
+                this.$mementos.push(this.$originator.save());
+            }
+
+            undo() {
+                if (this.$mementos.length === 0){
+                    return;
                 }
-                x = e.offsetX;
-                y = e.offsetY;
-            };
-            function drawLine(context, x1, y1, x2, y2) {
+                
+                this.$originator.restore(this.$mementos.pop());
+            }
+
+            showHistory() {
+                console.log(this.$mementos.map(it => it.getName()).join("\n"));
+            }
+        }
+
+        class Paint {
+            $ctx;
+            $state;
+
+            x = 0;
+            y = 0;
+            width = 0;
+            height = 0;
+
+            mousePressed = false;
+            inCanvas = false;
+
+            constructor($canvas) {
+                this.$ctx = $canvas.getContext('2d');
+                this.width = $canvas.width;
+                this.height = $canvas.height;
+                $canvas.onmouseenter = (e) => { 
+                    this.updatePosition(e.offsetX, e.offsetY);
+                    this.inCanvas = true; 
+                };
+                $canvas.onmouseout = (e) => { 
+                    this.updatePosition(e.offsetX, e.offsetY);
+                    this.inCanvas = false; 
+                };
+
+                $canvas.onmousemove = (e) => {
+                    if (this.mousePressed && this.inCanvas) {
+                        this.drawLine(this.x, this.y, e.offsetX, e.offsetY);
+                    }
+                    this.updatePosition(e.offsetX, e.offsetY);
+                };
+
+                this.updateState();
+            }
+
+            updatePosition(x, y) {
+                this.x = x;
+                this.y = y;
+            }
+
+            drawLine(x1, y1, x2, y2) {
+                const context = this.$ctx;
                 context.beginPath();
                 context.strokeStyle = 'black';
                 context.lineWidth = 1;
@@ -23,6 +116,46 @@
                 context.stroke();
                 context.closePath();
             }
-        </script>
-    </body>
+
+            onMousePress() {
+                this.mousePressed = true;
+            }
+
+            onMouseUnpress() {
+                this.mousePressed = false;
+                this.updateState();
+            }
+
+            save() {
+                return new PaintMemento(this.$state);
+            }
+
+            restore(m) {
+                this.$state = m.$state;
+                this.$ctx.putImageData(this.$state, 0, 0);
+            }
+
+            updateState() {
+                this.$state = this.$ctx.getImageData(0, 0, this.width, this.height);
+            }
+        }
+
+        const p = new Paint(document.getElementById("draw"));
+        const caretaker = new Caretaker(p);
+
+        window.onmousedown = (e) => { 
+            p.onMousePress();
+        };
+        window.onmouseup = (e) => { 
+            caretaker.backup();
+            p.onMouseUnpress();
+        };
+
+        document.addEventListener('keydown', function(e) {
+            const ctrlKey = navigator.appVersion.indexOf("Mac") != -1 ? Boolean(e.metaKey) : Boolean(e.ctrlKey);
+            if (ctrlKey && e.key === 'z') {
+                caretaker.undo();
+            }
+        });
+    </script>
 </html>
