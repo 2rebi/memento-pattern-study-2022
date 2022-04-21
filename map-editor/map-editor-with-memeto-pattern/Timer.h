@@ -3,21 +3,24 @@
 #include <Windows.h>
 #include "util.h"
 
-class Timer {
+class _Timer {
 public:
-	static Timer* get();
+	static _Timer* get();
 	static void release();
 
-	static void tick();
-	static const ULONGLONG dt();
-	static const double normDt();
+	void tick();
+	const ULONGLONG dt();
+	const double normDt();
+
 
 private:
-	Timer();
-	static Timer* instance;
+	_Timer();
+	static _Timer* instance;
 
 	double deltaTime;
 	ULONGLONG rawDeltaTime;
 	ULONGLONG prevTime;
 };
 
+#define Timer _Timer::get()
+#define TimerRelease() _Timer::release()

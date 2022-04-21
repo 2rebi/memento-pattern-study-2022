@@ -8,6 +8,8 @@
 
 #include "MainWindow.h"
 #include "Timer.h"
+#include "Context.h"
+#include "GameObjectManager.h"
 
 class DxMainWindow : public MainWindow {
 public:
@@ -26,3 +28,4 @@ private:
 	LPDIRECT3DDEVICE9 d3dDevice;
 };
 
+void singletonRelease();

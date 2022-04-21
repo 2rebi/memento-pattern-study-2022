@@ -18,92 +18,63 @@ INT DxMainWindow::start() {
 	}
 	this->showWindow();
 
-	//Test Vertex code - start
+	Context context(this->hMainWnd, this->d3dDevice);
 
-	size_t size = sizeof(TestVertex) * 3;
-	TestVertex vertexArr[3] =
-	{
-		{  1.f , -1.f , 0.f , 0xffff0000 },
-		{ -1.f , -1.f , 0.f , 0xff00ff00 },
-		{  0.f ,  1.f , 0.f , 0xff0000ff },
-	};
-	LPDIRECT3DVERTEXBUFFER9 vb;
+	//game object init and lifecycle calling
 
-	this->d3dDevice->CreateVertexBuffer(
-		size,
-		0,
-		D3DFVF_XYZ | D3DFVF_DIFFUSE,
-		D3DPOOL_MANAGED,
-		&vb,
-		0
-	);
-
-	void* data = nullptr;
-	vb->Lock(
-		0,
-		size,
-		&data,
-		0
-	);
-	memcpy(data, vertexArr, size);
-	vb->Unlock();
-	//Test Vertex code - end 
-
+	GameObjectManager->onAttach(&context);
 	while (true) {
 		peekingMessage();
 		if (needQuit()) {
 			break;
 		}
 
-		auto dt = Timer::dt();
-		// GetAsyncKeyState
-		// 1. input manager update
-		// 2. input detect update
-		// 3. object update
-		// 4. render
+		// ì¢…ë£Œ ìž„ì‹œ
+		if (IS_DOWN(VK_ESCAPE)) {
+			::PostMessage(hMainWnd, WM_QUIT, NULL, NULL);
+		}
 
+		//TODO: Input Manager, Migrate to DX INPUT
+
+		GameObjectManager->onUpdate();
+
+		// í•œê¸€ í…ŒìŠ¤íŠ¸
+		// render scope ===== start
 		this->d3dDevice->Clear(
 			0, 0,
-			D3DCLEAR_TARGET,
+			D3DCLEAR_TARGET,// | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL,
 			D3DCOLOR_XRGB(2, 95, 209),
-			1.f, // zbuffer
-			0.f // ½ºÅÙ½Ç ¹öÆÛ
+			1, // zbuffer
+			0 // ìŠ¤í…ì‹¤ ë²„í¼ 
 		); 
 
-		if (SUCCEEDED(this->d3dDevice->BeginScene())) {
-			// TODO: render
-			//test code - start
-			this->d3dDevice->SetStreamSource(0, vb, 0, sizeof(TestVertex));
-			this->d3dDevice->SetFVF(D3DFVF_XYZ | D3DFVF_DIFFUSE);
-			this->d3dDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 1);
-			this->d3dDevice->SetRenderState(D3DRS_LIGHTING, false);
-			//test code - end
 
+		if (SUCCEEDED(this->d3dDevice->BeginScene())) {
+			GameObjectManager->onRender();
 			this->d3dDevice->EndScene();
 		}
+
+		// render scope ===== end
 
 		if (this->d3dDevice->Present(0, 0, 0, 0) == D3DERR_DEVICELOST) {
 			// TODO: restore device
 		}
-
-		Timer::tick();
+		
+		Timer->tick();
 	}
 
-	Timer::release();
 	this->onDetach();
-
-	SAFE_RELEASE(vb); // test code - end
 	return getPeekedMessage()->wParam;
 }
 
 bool DxMainWindow::onAttach() {
 	this->d3d = ::Direct3DCreate9(D3D_SDK_VERSION);
 
-	// TODO: µð¹ÙÀÌ½º ÃÊ±âÈ­ ÇÔ¼ö´Â º°µµ·Î Á¦°øÇÏ´Â°Ô ³ªÀ»µí
+	// TODO: ë””ë°”ì´ìŠ¤ ì´ˆê¸°í™” í•¨ìˆ˜ëŠ” ë³„ë„ë¡œ ì œê³µí•˜ëŠ”ê²Œ ë‚˜ì„ë“¯
 	D3DPRESENT_PARAMETERS d3dParams;
 	::ZeroMemory(&d3dParams, sizeof(d3dParams));
 
-	d3dParams.Windowed = true; // Ã¢¸ðµå
+	d3dParams.Windowed = true; // ì°½ëª¨ë“œ
 	d3dParams.BackBufferFormat = D3DFMT_A8R8G8B8;
 	d3dParams.BackBufferWidth = this->width;
 	d3dParams.BackBufferHeight = this->height;
@@ -122,10 +93,17 @@ bool DxMainWindow::onAttach() {
 }
 
 void DxMainWindow::onDetach() {
+	GameObjectManager->onDetach();
+	singletonRelease();
 	this->release();
 }
 
 void DxMainWindow::release() {
 	SAFE_RELEASE(this->d3dDevice);
 	SAFE_RELEASE(this->d3d);
+}
+
+void singletonRelease() {
+	TimerRelease();
+	GameObjectManagerRelease();
 }
