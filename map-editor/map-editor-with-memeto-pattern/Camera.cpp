@@ -2,17 +2,17 @@
 
 void Camera::onCreate() {
 
-	eye = D3DXVECTOR3(0, 15, 15);
+	// view
+	eye = D3DXVECTOR3(0, 10, 0);
 	lookAt = D3DXVECTOR3(0, 0, 0);
 
 	// projection
-	fov = D3DXToRadian(89);
-	aspect = 1.f;
+	fov = D3DXToRadian(114);
+	aspect = (double)1920 / (double)1029;
 	nearDist = 0.1f;
 	farDist = 1000;
 
-	updateView();
-	updateProjection();
+	this->invalidate();
 }
 
 void Camera::onUpdate() {
@@ -46,4 +46,9 @@ void Camera::updateProjection() {
 		D3DTS_PROJECTION,
 		&this->projection
 	);
+}
+
+void Camera::invalidate() {
+	updateView();
+	updateProjection();
 }

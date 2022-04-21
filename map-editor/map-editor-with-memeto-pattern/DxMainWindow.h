@@ -10,6 +10,8 @@
 #include "Timer.h"
 #include "Context.h"
 #include "GameObjectManager.h"
+#include "Camera.h"
+#include "Terrain.h"
 
 class DxMainWindow : public MainWindow {
 public:

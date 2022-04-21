@@ -18,9 +18,15 @@ INT DxMainWindow::start() {
 	}
 	this->showWindow();
 
-	Context context(this->hMainWnd, this->d3dDevice);
 
 	//game object init and lifecycle calling
+	Terrain terrain;
+	Camera camera;
+	GameObjectManager->managing(&terrain);
+	GameObjectManager->managing(&camera);
+
+	Context context(this->hMainWnd, this->d3dDevice);
+
 
 	GameObjectManager->onAttach(&context);
 	while (true) {
@@ -42,12 +48,11 @@ INT DxMainWindow::start() {
 		// render scope ===== start
 		this->d3dDevice->Clear(
 			0, 0,
-			D3DCLEAR_TARGET,// | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL,
+			D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER,// | D3DCLEAR_STENCIL,
 			D3DCOLOR_XRGB(2, 95, 209),
 			1, // zbuffer
 			0 // 스텐실 버퍼 
 		); 
-
 
 		if (SUCCEEDED(this->d3dDevice->BeginScene())) {
 			GameObjectManager->onRender();
@@ -80,6 +85,9 @@ bool DxMainWindow::onAttach() {
 	d3dParams.BackBufferHeight = this->height;
 
 	d3dParams.SwapEffect = D3DSWAPEFFECT_DISCARD;
+	d3dParams.EnableAutoDepthStencil = true; // 뎁스스텐실 을 사용하겠다
+	d3dParams.AutoDepthStencilFormat = D3DFMT_D24S8; //depth = 24bit할당 스텐실 = 8bit 할당
+
 	this->d3d->CreateDevice(
 		D3DADAPTER_DEFAULT,
 		D3DDEVTYPE_HAL,
@@ -88,6 +96,30 @@ bool DxMainWindow::onAttach() {
 		&d3dParams,
 		&this->d3dDevice
 	);
+
+
+	// TODO: 임시, 렌더 스테이트 부분 멤버 함수로 빼기
+	this->d3dDevice->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
+
+	// TODO: 임시, 라이트 객체로 빼기
+	D3DLIGHT9 light;
+	::ZeroMemory(&light, sizeof(D3DLIGHT9));
+
+	D3DXVECTOR3 dir = D3DXVECTOR3(0, -1, 1);
+	D3DXVec3Normalize(&dir, &dir);
+
+	light.Direction = dir;
+	light.Type = D3DLIGHT_DIRECTIONAL;
+	light.Diffuse = D3DXCOLOR(1, 1, 1, 1);
+	light.Ambient = D3DXCOLOR(1, 1, 1, 1);
+
+	this->d3dDevice->SetLight(0, &light);
+	this->d3dDevice->LightEnable(0, true);
+	this->d3dDevice->SetRenderState(D3DRS_LIGHTING, true);
+
+	this->d3dDevice->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_ANISOTROPIC);
+	this->d3dDevice->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_ANISOTROPIC);
+	this->d3dDevice->SetSamplerState(0, D3DSAMP_MIPFILTER, D3DTEXF_ANISOTROPIC);
 
 	return this->d3dDevice != nullptr;
 }
